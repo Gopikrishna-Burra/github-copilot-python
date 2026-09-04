@@ -81,6 +81,39 @@ h1 {
     font-weight: bold;
 }
 
+#score-entry {
+    margin: 16px auto;
+}
+
+#player-name {
+    margin: 0 8px;
+    padding: 6px;
+}
+
+#score-error {
+    display: block;
+    margin-top: 6px;
+    color: #d32f2f;
+}
+
+.leaderboard {
+    margin: 30px auto;
+    max-width: 420px;
+}
+
+.leaderboard h2 {
+    margin-bottom: 10px;
+}
+
+.leaderboard ol {
+    padding-left: 0;
+    list-style-position: inside;
+}
+
+.leaderboard li {
+    margin: 6px 0;
+}
+
 button {
     padding: 8px 18px;
     margin: 0 8px;

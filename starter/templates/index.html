@@ -23,6 +23,16 @@
     <button id="check-solution">Check Solution</button>
     <span id="message" role="status" aria-live="polite"></span>
   </div>
+  <div id="score-entry" hidden>
+    <label for="player-name">Your name</label>
+    <input id="player-name" type="text" maxlength="30" aria-describedby="score-error">
+    <button id="save-score" type="button">Save Score</button>
+    <span id="score-error" role="alert"></span>
+  </div>
+  <section class="leaderboard" aria-labelledby="leaderboard-title">
+    <h2 id="leaderboard-title">Top 10 Scores</h2>
+    <ol id="leaderboard-list"></ol>
+  </section>
   <script src="/static/main.js"></script>
 </body>
 </html>

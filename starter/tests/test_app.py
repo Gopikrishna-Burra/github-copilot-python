@@ -36,6 +36,12 @@ def test_index_returns_sudoku_page(client):
     assert b'<time id="timer"' in response.data
     assert b'aria-labelledby="timer-label"' in response.data
     assert b'datetime="PT0M0S"' in response.data
+    assert b'id="score-entry"' in response.data
+    assert b'id="player-name"' in response.data
+    assert b'id="save-score"' in response.data
+    assert b'class="leaderboard"' in response.data
+    assert b'id="leaderboard-title"' in response.data
+    assert b'id="leaderboard-list"' in response.data
 
 
 def test_new_returns_default_puzzle_and_stores_game(client, monkeypatch):
