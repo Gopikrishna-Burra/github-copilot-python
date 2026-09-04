@@ -243,3 +243,7 @@ The final application should be:
 * Robust against invalid input
 
 Correctness and maintainability are more important than minimizing the number of lines of code.
+
+## Comments and Documentation
+
+Review the completed project and explain where comments were added, how they help future developers understand non-obvious logic or design decisions, and how a consistent comment style was maintained across the project.
