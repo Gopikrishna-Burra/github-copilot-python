@@ -10,6 +10,8 @@ let elapsedSeconds = 0;
 let completedTimeSeconds = null;
 let currentGameDifficulty = 'medium';
 let scoreSubmitted = false;
+let hintsUsed = 0;
+let hintedCells = new Set();
 
 function getStoredTheme() {
   try {
@@ -104,6 +106,9 @@ function loadLeaderboard() {
       name: score.name.trim(),
       timeSeconds: score.timeSeconds,
       difficulty: score.difficulty,
+      hintsUsed: Number.isInteger(score.hintsUsed) && score.hintsUsed >= 0
+        ? score.hintsUsed
+        : 0,
     }));
   } catch (error) {
     return [];
@@ -145,7 +150,7 @@ function renderLeaderboard() {
 
   scores.forEach((score, index) => {
     const item = document.createElement('li');
-    item.textContent = `${index + 1}. ${score.name} - ${formatElapsedTime(score.timeSeconds)} - ${score.difficulty}`;
+    item.textContent = `${index + 1}. ${score.name} - ${formatElapsedTime(score.timeSeconds)} - ${score.difficulty} - ${score.hintsUsed} hints`;
     list.appendChild(item);
   });
 }
@@ -167,6 +172,64 @@ function hideScoreEntry() {
   scoreError.textContent = '';
 }
 
+function updateHintsUsed() {
+  document.getElementById('hints-used').textContent = `Hints used: ${hintsUsed}`;
+}
+
+async function requestHint() {
+  const hintButton = document.getElementById('hint-button');
+  const msg = document.getElementById('message');
+  hintButton.disabled = true;
+  try {
+    const inputs = document.getElementById('sudoku-board').getElementsByTagName('input');
+    const res = await fetch('/hint', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({board: getBoardValues(inputs)})
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      msg.className = 'message-error';
+      msg.innerText = data.error || 'Unable to provide a hint.';
+      return;
+    }
+
+    if (!Number.isInteger(data.row) || !Number.isInteger(data.col)
+        || data.row < 0 || data.row >= SIZE || data.col < 0 || data.col >= SIZE
+        || !Number.isInteger(data.value) || data.value < 1 || data.value > SIZE
+        || !Number.isInteger(data.hintsUsed) || data.hintsUsed < 1) {
+      msg.className = 'message-error';
+      msg.innerText = 'Unable to provide a hint.';
+      return;
+    }
+
+    const index = data.row * SIZE + data.col;
+    const input = inputs[index];
+    if (input.disabled || input.value !== '') {
+      msg.className = 'message-error';
+      msg.innerText = 'Unable to apply the hint.';
+      return;
+    }
+
+    input.value = data.value;
+    input.classList.add('hinted');
+    input.dataset.hinted = 'true';
+    input.dataset.prefilled = 'false';
+    input.disabled = true;
+    hintedCells.add(`${data.row},${data.col}`);
+    hintsUsed = data.hintsUsed;
+    updateHintsUsed();
+    validateBoard();
+    msg.className = 'message-success';
+    msg.innerText = 'Hint used. A correct cell was filled.';
+  } catch (error) {
+    msg.className = 'message-error';
+    msg.innerText = 'Unable to provide a hint.';
+  } finally {
+    hintButton.disabled = false;
+  }
+}
+
 function handleScoreSubmission(event) {
   event.preventDefault();
   if (scoreSubmitted || completedTimeSeconds === null) return;
@@ -185,6 +248,7 @@ function handleScoreSubmission(event) {
     name,
     timeSeconds: completedTimeSeconds,
     difficulty: currentGameDifficulty,
+    hintsUsed,
   });
   scoreSubmitted = true;
   document.getElementById('save-score').disabled = true;
@@ -206,6 +270,7 @@ function createBoardElement() {
       input.maxLength = 1;
       input.className = `sudoku-cell ${boxClass}`;
       input.dataset.prefilled = 'false';
+      input.dataset.hinted = 'false';
       input.dataset.row = i;
       input.dataset.col = j;
       input.addEventListener('input', (e) => {
@@ -234,6 +299,7 @@ function renderPuzzle(puz) {
       const boxClass = (boxRow + boxCol) % 2 === 0 ? 'box-light' : 'box-dark';
       inp.className = `sudoku-cell ${boxClass}`;
       inp.removeAttribute('aria-invalid');
+      inp.dataset.hinted = 'false';
       if (val !== 0) {
         inp.value = val;
         inp.disabled = true;
@@ -329,6 +395,10 @@ async function newGame() {
   currentGameDifficulty = difficulty;
   completedTimeSeconds = null;
   scoreSubmitted = false;
+  hintsUsed = 0;
+  hintedCells.clear();
+  updateHintsUsed();
+  document.getElementById('hint-button').disabled = false;
   document.getElementById('save-score').disabled = false;
   hideScoreEntry();
   startTimer();
@@ -366,7 +436,7 @@ async function checkSolution() {
       showScoreEntry();
     }
     msg.className = 'message-success';
-    msg.innerText = 'Congratulations! You solved it!';
+    msg.innerText = `Congratulations! You solved it in ${formatElapsedTime(elapsedSeconds)} using ${hintsUsed} hint${hintsUsed === 1 ? '' : 's'}.`;
   } else {
     msg.className = 'message-error';
     msg.innerText = 'Some cells are incorrect.';
@@ -377,6 +447,7 @@ async function checkSolution() {
 window.addEventListener('load', () => {
   applyTheme(getStoredTheme());
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('hint-button').addEventListener('click', requestHint);
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('save-score').addEventListener('click', handleScoreSubmission);

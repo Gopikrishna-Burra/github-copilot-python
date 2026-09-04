@@ -19,6 +19,8 @@
     --button-text: #ffffff;
     --error-text: #8b1e2d;
     --success-text: #216e39;
+    --hint-background: #d7f0e0;
+    --hint-border: #176b3a;
 }
 
 :root[data-theme="dark"] {
@@ -42,6 +44,8 @@
     --button-text: #ffffff;
     --error-text: #fecaca;
     --success-text: #86efac;
+    --hint-background: #24513d;
+    --hint-border: #86efac;
 }
 
 body {
@@ -112,6 +116,18 @@ h1 {
     outline-offset: -2px;
 }
 
+.sudoku-cell.hinted {
+    background: var(--hint-background);
+    outline: 2px dashed var(--hint-border);
+    outline-offset: -2px;
+    font-weight: bold;
+}
+
+:root[data-theme="dark"] .sudoku-cell.hinted {
+    background: #24513d;
+    outline-color: #86efac;
+}
+
 .sudoku-cell:nth-child(3),
 .sudoku-cell:nth-child(6) {
     border-right: 3px solid var(--strong-border);
@@ -148,6 +164,12 @@ h1 {
 
 #score-entry {
     margin: 16px auto;
+    color: var(--primary-text);
+}
+
+#hints-used {
+    display: inline-block;
+    margin-left: 12px;
     color: var(--primary-text);
 }
 
@@ -211,4 +233,13 @@ button:hover {
 
 .message-success {
     color: var(--success-text);
+}
+
+@media (max-width: 420px) {
+    .sudoku-cell {
+        box-sizing: border-box;
+        width: calc((100vw - 8px) / 9);
+        height: calc((100vw - 8px) / 9);
+        font-size: 16px;
+    }
 }

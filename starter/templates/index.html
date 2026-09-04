@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sudoku Game</title>
   <script>
     try {
@@ -29,8 +30,10 @@
       <option value="hard">Hard</option>
     </select>
     <button id="theme-toggle" type="button" aria-pressed="false">Switch to Dark Mode</button>
+    <button id="hint-button" type="button">Hint</button>
     <button id="new-game">New Game</button>
     <button id="check-solution">Check Solution</button>
+    <span id="hints-used" aria-live="polite">Hints used: 0</span>
     <span id="message" role="status" aria-live="polite"></span>
   </div>
   <div id="score-entry" hidden>
