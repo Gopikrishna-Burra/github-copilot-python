@@ -42,6 +42,10 @@ def test_index_returns_sudoku_page(client):
     assert b'class="leaderboard"' in response.data
     assert b'id="leaderboard-title"' in response.data
     assert b'id="leaderboard-list"' in response.data
+    assert b'id="theme-toggle"' in response.data
+    assert b'type="button"' in response.data
+    assert b'aria-pressed="false"' in response.data
+    assert b'Switch to Dark Mode' in response.data
 
 
 def test_new_returns_default_puzzle_and_stores_game(client, monkeypatch):

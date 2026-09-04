@@ -1,6 +1,7 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 const LEADERBOARD_STORAGE_KEY = 'sudokuLeaderboard';
+const THEME_STORAGE_KEY = 'sudokuTheme';
 const SUPPORTED_DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
 let puzzle = [];
 let timerInterval = null;
@@ -9,6 +10,39 @@ let elapsedSeconds = 0;
 let completedTimeSeconds = null;
 let currentGameDifficulty = 'medium';
 let scoreSubmitted = false;
+
+function getStoredTheme() {
+  try {
+    const theme = localStorage.getItem(THEME_STORAGE_KEY);
+    return theme === 'dark' || theme === 'light' ? theme : 'light';
+  } catch (error) {
+    return 'light';
+  }
+}
+
+function applyTheme(theme) {
+  const selectedTheme = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = selectedTheme;
+  updateThemeToggle();
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, selectedTheme);
+  } catch (error) {
+    // Theme changes continue to work for the current page if storage fails.
+  }
+}
+
+function updateThemeToggle() {
+  const toggle = document.getElementById('theme-toggle');
+  if (!toggle) return;
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  toggle.setAttribute('aria-pressed', String(isDark));
+  toggle.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+}
+
+function toggleTheme() {
+  const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(nextTheme);
+}
 
 function formatElapsedTime(seconds) {
   const minutes = Math.floor(seconds / 60);
@@ -313,7 +347,7 @@ async function checkSolution() {
   const data = await res.json();
   const msg = document.getElementById('message');
   if (data.error) {
-    msg.style.color = '#d32f2f';
+    msg.className = 'message-error';
     msg.innerText = data.error;
     return;
   }
@@ -331,16 +365,18 @@ async function checkSolution() {
       completedTimeSeconds = elapsedSeconds;
       showScoreEntry();
     }
-    msg.style.color = '#388e3c';
+    msg.className = 'message-success';
     msg.innerText = 'Congratulations! You solved it!';
   } else {
-    msg.style.color = '#d32f2f';
+    msg.className = 'message-error';
     msg.innerText = 'Some cells are incorrect.';
   }
 }
 
 // Wire buttons
 window.addEventListener('load', () => {
+  applyTheme(getStoredTheme());
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('save-score').addEventListener('click', handleScoreSubmission);

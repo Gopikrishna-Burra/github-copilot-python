@@ -3,6 +3,15 @@
 <head>
   <meta charset="utf-8">
   <title>Sudoku Game</title>
+  <script>
+    try {
+      if (localStorage.getItem('sudokuTheme') === 'dark') {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    } catch (error) {
+      // Light Mode remains the default when storage is unavailable.
+    }
+  </script>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -19,6 +28,7 @@
       <option value="medium" selected>Medium</option>
       <option value="hard">Hard</option>
     </select>
+    <button id="theme-toggle" type="button" aria-pressed="false">Switch to Dark Mode</button>
     <button id="new-game">New Game</button>
     <button id="check-solution">Check Solution</button>
     <span id="message" role="status" aria-live="polite"></span>
