@@ -148,3 +148,37 @@ def test_generate_puzzle_returns_independent_puzzle_and_solution():
     puzzle[0][0] = 9 if original_solution_value != 9 else 8
 
     assert solution[0][0] == original_solution_value
+
+
+def test_difficulty_clues_contains_supported_levels():
+    assert sudoku_logic.DIFFICULTY_CLUES == {
+        'easy': 45,
+        'medium': 35,
+        'hard': 30,
+    }
+
+
+@pytest.mark.parametrize('difficulty, clues', [
+    ('easy', 45),
+    ('medium', 35),
+    ('hard', 30),
+])
+def test_generate_puzzle_for_difficulty_returns_unique_puzzle(difficulty, clues):
+    random.seed(12345)
+
+    puzzle, solution = sudoku_logic.generate_puzzle_for_difficulty(difficulty)
+
+    assert sum(cell != sudoku_logic.EMPTY for row in puzzle for cell in row) == clues
+    assert sudoku_logic.count_solutions(puzzle, limit=2) == 1
+    assert is_valid_complete_board(solution)
+    assert all(
+        puzzle[row][column] == sudoku_logic.EMPTY
+        or puzzle[row][column] == solution[row][column]
+        for row in range(sudoku_logic.SIZE)
+        for column in range(sudoku_logic.SIZE)
+    )
+
+
+def test_generate_puzzle_for_difficulty_rejects_invalid_value():
+    with pytest.raises(ValueError, match='Invalid difficulty: expert'):
+        sudoku_logic.generate_puzzle_for_difficulty('expert')

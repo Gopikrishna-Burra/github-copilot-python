@@ -53,6 +53,87 @@ def test_new_returns_default_puzzle_and_stores_game(client, monkeypatch):
     }
 
 
+def test_new_preserves_clues_parameter(client, monkeypatch):
+    expected_puzzle = sudoku_logic.create_empty_board()
+    expected_solution = sudoku_logic.create_empty_board()
+
+    def fake_generate_puzzle(clues):
+        assert clues == 40
+        return expected_puzzle, expected_solution
+
+    monkeypatch.setattr(app_module.sudoku_logic, 'generate_puzzle', fake_generate_puzzle)
+
+    response = client.get('/new?clues=40')
+
+    assert response.status_code == 200
+    assert response.get_json() == {'puzzle': expected_puzzle}
+
+
+@pytest.mark.parametrize('difficulty', ['easy', 'medium', 'hard'])
+def test_new_supports_difficulty_parameter(client, monkeypatch, difficulty):
+    expected_puzzle = sudoku_logic.create_empty_board()
+    expected_solution = sudoku_logic.create_empty_board()
+
+    def fake_generate_puzzle_for_difficulty(value):
+        assert value == difficulty
+        return expected_puzzle, expected_solution
+
+    monkeypatch.setattr(
+        app_module.sudoku_logic,
+        'generate_puzzle_for_difficulty',
+        fake_generate_puzzle_for_difficulty,
+    )
+
+    response = client.get(f'/new?difficulty={difficulty}')
+
+    assert response.status_code == 200
+    assert response.get_json() == {'puzzle': expected_puzzle}
+    assert app_module.CURRENT == {
+        'puzzle': expected_puzzle,
+        'solution': expected_solution,
+    }
+
+
+def test_new_difficulty_takes_precedence_over_clues(client, monkeypatch):
+    expected_puzzle = sudoku_logic.create_empty_board()
+    expected_solution = sudoku_logic.create_empty_board()
+
+    def fake_generate_puzzle_for_difficulty(difficulty):
+        assert difficulty == 'easy'
+        return expected_puzzle, expected_solution
+
+    def fail_generate_puzzle(clues):
+        pytest.fail('clues generation should not be called when difficulty is provided')
+
+    monkeypatch.setattr(
+        app_module.sudoku_logic,
+        'generate_puzzle_for_difficulty',
+        fake_generate_puzzle_for_difficulty,
+    )
+    monkeypatch.setattr(app_module.sudoku_logic, 'generate_puzzle', fail_generate_puzzle)
+
+    response = client.get('/new?difficulty=easy&clues=30')
+
+    assert response.status_code == 200
+    assert response.get_json() == {'puzzle': expected_puzzle}
+
+
+def test_new_invalid_difficulty_returns_bad_request(client, monkeypatch):
+    def fail_generate_puzzle_for_difficulty(difficulty):
+        raise ValueError(f'Invalid difficulty: {difficulty}')
+
+    monkeypatch.setattr(
+        app_module.sudoku_logic,
+        'generate_puzzle_for_difficulty',
+        fail_generate_puzzle_for_difficulty,
+    )
+
+    response = client.get('/new?difficulty=expert')
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Invalid difficulty: expert'}
+
+
 def test_check_without_game_returns_error(client):
     board = sudoku_logic.create_empty_board()
 

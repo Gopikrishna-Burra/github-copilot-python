@@ -3,6 +3,7 @@ import random
 
 SIZE = 9
 EMPTY = 0
+DIFFICULTY_CLUES = {"easy": 45, "medium": 35, "hard": 30}
 
 def deep_copy(board):
     return copy.deepcopy(board)
@@ -138,3 +139,10 @@ def generate_puzzle(clues=35):
     remove_cells(board, clues)
     puzzle = deep_copy(board)
     return puzzle, solution
+
+def generate_puzzle_for_difficulty(difficulty):
+    try:
+        clues = DIFFICULTY_CLUES[difficulty]
+    except KeyError:
+        raise ValueError(f"Invalid difficulty: {difficulty}") from None
+    return generate_puzzle(clues=clues)
