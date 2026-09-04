@@ -1,6 +1,49 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 let puzzle = [];
+let timerInterval = null;
+let timerStartedAt = null;
+let elapsedSeconds = 0;
+
+function formatElapsedTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay() {
+  if (timerStartedAt !== null) {
+    elapsedSeconds = Math.floor((Date.now() - timerStartedAt) / 1000);
+  }
+  document.getElementById('timer').textContent = formatElapsedTime(elapsedSeconds);
+}
+
+function resetTimer() {
+  if (timerInterval !== null) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  timerStartedAt = null;
+  elapsedSeconds = 0;
+  updateTimerDisplay();
+}
+
+function startTimer() {
+  resetTimer();
+  timerStartedAt = Date.now();
+  updateTimerDisplay();
+  timerInterval = setInterval(updateTimerDisplay, 1000);
+}
+
+function stopTimer() {
+  if (timerStartedAt === null) return;
+  updateTimerDisplay();
+  timerStartedAt = null;
+  if (timerInterval !== null) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -51,6 +94,7 @@ function renderPuzzle(puz) {
       }
     }
   }
+}
 
 function validateBoard() {
   const inputs = document.getElementById('sudoku-board').getElementsByTagName('input');
@@ -123,13 +167,14 @@ function getBoardValues(inputs) {
   }
   return board;
 }
-}
 
 async function newGame() {
   const difficulty = document.getElementById('difficulty').value;
   const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
   const data = await res.json();
+  if (!res.ok || !data.puzzle) return;
   renderPuzzle(data.puzzle);
+  startTimer();
   document.getElementById('message').innerText = '';
 }
 
@@ -158,6 +203,7 @@ async function checkSolution() {
   }
   const hasEmptyCells = board.some(row => row.includes(0));
   if (!hasEmptyCells && incorrect.size === 0) {
+    stopTimer();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
   } else {
