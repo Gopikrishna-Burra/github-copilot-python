@@ -31,6 +31,7 @@ def test_index_returns_sudoku_page(client):
     assert response.status_code == 200
     assert b'Sudoku Game' in response.data
     assert b'sudoku-board' in response.data
+    assert b'id="message" role="status" aria-live="polite"' in response.data
 
 
 def test_new_returns_default_puzzle_and_stores_game(client, monkeypatch):

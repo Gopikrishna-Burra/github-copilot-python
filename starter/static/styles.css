@@ -48,6 +48,12 @@ h1 {
     background: #ffcdd2;
 }
 
+.sudoku-cell.invalid {
+    background: #fff3cd;
+    outline: 2px solid #9a6700;
+    outline-offset: -2px;
+}
+
 .sudoku-cell:nth-child(3),
 .sudoku-cell:nth-child(6) {
     border-right: 3px solid #333;
