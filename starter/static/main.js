@@ -165,9 +165,12 @@ function createBoardElement() {
     rowDiv.className = 'sudoku-row';
     for (let j = 0; j < SIZE; j++) {
       const input = document.createElement('input');
+      const boxRow = Math.floor(i / 3);
+      const boxCol = Math.floor(j / 3);
+      const boxClass = (boxRow + boxCol) % 2 === 0 ? 'box-light' : 'box-dark';
       input.type = 'text';
       input.maxLength = 1;
-      input.className = 'sudoku-cell';
+      input.className = `sudoku-cell ${boxClass}`;
       input.dataset.prefilled = 'false';
       input.dataset.row = i;
       input.dataset.col = j;
@@ -192,12 +195,15 @@ function renderPuzzle(puz) {
       const idx = i * SIZE + j;
       const val = puzzle[i][j];
       const inp = inputs[idx];
-      inp.className = 'sudoku-cell';
+      const boxRow = Math.floor(i / 3);
+      const boxCol = Math.floor(j / 3);
+      const boxClass = (boxRow + boxCol) % 2 === 0 ? 'box-light' : 'box-dark';
+      inp.className = `sudoku-cell ${boxClass}`;
       inp.removeAttribute('aria-invalid');
       if (val !== 0) {
         inp.value = val;
         inp.disabled = true;
-        inp.className = 'sudoku-cell prefilled';
+        inp.className = `sudoku-cell ${boxClass} prefilled`;
         inp.dataset.prefilled = 'true';
       } else {
         inp.value = '';
